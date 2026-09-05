@@ -180,6 +180,17 @@
   .icon-btn:hover { background: var(--bg-hover); }
   .icon-btn:active { transform: scale(0.93); }
 
+  /* ---------------------------------------------------------- section tabs */
+  #section-tabs-wrap {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 12px 14px 0;
+  }
+  #section-tabs { max-width: 340px; }
+  @media (min-width: 900px) {
+    #section-tabs-wrap { padding: 20px 24px 0; }
+  }
+
   /* --------------------------------------------------------------- layout */
   #app { padding: 0 0 100px; }
   #layout {
@@ -416,7 +427,12 @@
     font-weight: 700;
     padding: 3px 7px;
     border-radius: 999px;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
   }
+  .card .dirty-badge:hover { background: rgba(0,0,0,0.85); }
+  .card .dirty-badge:active { transform: scale(0.93); }
   .card .edit-btn {
     position: absolute;
     top: 7px;
@@ -535,6 +551,54 @@
   details.more-details summary:hover { color: var(--text); }
   details.more-details .field { margin-top: 12px; }
 
+  /* ------------------------------------------------------------ laundry basket */
+  dialog#laundry-modal {
+    border: none;
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    color: var(--text);
+    width: min(440px, calc(100vw - 32px));
+    max-height: calc(100vh - 60px);
+    padding: 0;
+    box-shadow: var(--shadow-lift);
+  }
+  dialog#laundry-modal::backdrop { background: rgba(0,0,0,0.65); backdrop-filter: blur(2px); }
+  #laundry-all-clean-btn { margin-bottom: 16px; }
+  #laundry-list { display: flex; flex-direction: column; gap: 8px; }
+  .laundry-empty { color: var(--text-dim); font-size: 13.5px; text-align: center; padding: 20px 0; }
+  .laundry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+  }
+  .laundry-row input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--accent);
+    flex: 0 0 auto;
+  }
+  .laundry-row .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .laundry-row .laundry-name { flex: 1; font-size: 13.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stepper { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .stepper-btn {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepper-btn:hover:not(:disabled) { background: var(--bg-hover); }
+  .stepper-btn:disabled { opacity: 0.35; cursor: default; }
+  .stepper-count { font-size: 12px; color: var(--warning); font-weight: 600; min-width: 46px; text-align: center; }
+  .laundry-actions-row { display: flex; gap: 8px; width: 100%; }
+  .laundry-actions-row .btn { flex: 1; }
+
   /* ---------------------------------------------------------------- toast */
   #toast-container {
     position: fixed;
@@ -625,14 +689,21 @@
           <button class="btn btn-ghost btn-sm" id="select-toggle-btn" title="Select multiple (s)">
             <span class="btn-icon">☑</span><span class="btn-label">Select</span>
           </button>
-          <button class="btn btn-primary btn-sm" id="laundry-done-btn" title="Laundry done (l)">
-            <span class="btn-icon">🧺</span><span class="btn-label">Laundry done</span>
+          <button class="btn btn-primary btn-sm" id="laundry-done-btn" title="Laundry basket (l)">
+            <span class="btn-icon">🧺</span><span class="btn-label">Laundry</span>
           </button>
           <button class="icon-btn" id="logout-btn" title="Log out">⎋</button>
         </div>
       </div>
     </div>
   </header>
+
+  <div id="section-tabs-wrap">
+    <div class="segmented" id="section-tabs">
+      <button type="button" class="segmented-btn active" data-section="clothes">👕 Clothes</button>
+      <button type="button" class="segmented-btn" data-section="household">🛏️ Household</button>
+    </div>
+  </div>
 
   <div id="layout">
     <aside id="sidebar">
@@ -664,7 +735,7 @@
         </div>
       </div>
 
-      <div id="shortcuts-hint"><kbd>a</kbd> add<br><kbd>s</kbd> select<br><kbd>l</kbd> laundry done<br><kbd>esc</kbd> cancel</div>
+      <div id="shortcuts-hint"><kbd>a</kbd> add<br><kbd>s</kbd> select<br><kbd>l</kbd> laundry basket<br><kbd>esc</kbd> cancel</div>
     </aside>
 
     <main id="main-content">
@@ -767,6 +838,23 @@
   </form>
 </dialog>
 
+<dialog id="laundry-modal">
+  <div class="modal-header">
+    <h2>Laundry basket</h2>
+    <button type="button" class="icon-btn" id="laundry-modal-close-btn">✕</button>
+  </div>
+  <div class="modal-body">
+    <button type="button" class="btn btn-primary btn-block" id="laundry-all-clean-btn">Everything's clean</button>
+    <div id="laundry-list"></div>
+  </div>
+  <div class="modal-footer">
+    <div class="laundry-actions-row">
+      <button type="button" class="btn btn-sm" id="laundry-selected-clean-btn">Selected are clean</button>
+      <button type="button" class="btn btn-sm" id="laundry-rest-clean-btn">Everything else is clean</button>
+    </div>
+  </div>
+</dialog>
+
 <div id="toast-container"></div>
 
 <script type="module">
@@ -783,18 +871,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 const CATEGORIES = [
-  { id: 'tops', label: 'Tops', color: '#60a5fa' },
-  { id: 'bottoms', label: 'Bottoms', color: '#34d399' },
-  { id: 'outerwear', label: 'Outerwear', color: '#fb923c' },
-  { id: 'footwear', label: 'Footwear', color: '#f472b6' },
-  { id: 'socks', label: 'Socks', color: '#a78bfa' },
-  { id: 'underwear', label: 'Underwear', color: '#38bdf8' },
-  { id: 'sleepwear', label: 'Sleepwear', color: '#94a3b8' },
-  { id: 'activewear', label: 'Activewear', color: '#fb7185' },
-  { id: 'formal', label: 'Formal', color: '#eab308' },
-  { id: 'accessories', label: 'Accessories', color: '#2dd4bf' },
+  { id: 'tops', label: 'Tops', color: '#60a5fa', section: 'clothes' },
+  { id: 'bottoms', label: 'Bottoms', color: '#34d399', section: 'clothes' },
+  { id: 'outerwear', label: 'Outerwear', color: '#fb923c', section: 'clothes' },
+  { id: 'footwear', label: 'Footwear', color: '#f472b6', section: 'clothes' },
+  { id: 'socks', label: 'Socks', color: '#a78bfa', section: 'clothes' },
+  { id: 'underwear', label: 'Underwear', color: '#38bdf8', section: 'clothes' },
+  { id: 'sleepwear', label: 'Sleepwear', color: '#94a3b8', section: 'clothes' },
+  { id: 'activewear', label: 'Activewear', color: '#fb7185', section: 'clothes' },
+  { id: 'formal', label: 'Formal', color: '#eab308', section: 'clothes' },
+  { id: 'accessories', label: 'Accessories', color: '#2dd4bf', section: 'clothes' },
+  { id: 'towels', label: 'Towels', color: '#c2703d', section: 'household' },
+  { id: 'bedding', label: 'Bedding', color: '#818cf8', section: 'household' },
 ];
 const CATEGORY_BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]));
+const CATEGORY_SECTION = new Map(CATEGORIES.map((c) => [c.id, c.section]));
 
 // ==== PURE-LOGIC-START ====
 // No DOM, no Supabase — safe to unit test in isolation (see wardrobe.test.js).
@@ -818,6 +909,10 @@ function decrementDirty(garment) {
 
 function resetAllDirty(garments) {
   return garments.map((g) => ({ ...g, dirty_count: 0 }));
+}
+
+function resetDirtyForIds(garments, ids) {
+  return garments.map((g) => (ids.has(g.id) ? { ...g, dirty_count: 0 } : g));
 }
 
 function snapshotDirtyCounts(garments) {
@@ -849,11 +944,14 @@ function isOutfitWearable(garmentIds, garmentsById) {
   });
 }
 
-function matchesFilters(garment, filters) {
+function matchesFilters(garment, filters, categorySectionById) {
   if (filters.category && filters.category !== 'all' && garment.category !== filters.category) return false;
   if (filters.color && filters.color !== 'all' && (garment.color || '') !== filters.color) return false;
   if (filters.status === 'clean' && cleanAvailable(garment) <= 0) return false;
   if (filters.status === 'dirty' && garment.dirty_count <= 0) return false;
+  if (filters.section && filters.section !== 'all' && categorySectionById) {
+    if (categorySectionById.get(garment.category) !== filters.section) return false;
+  }
   return true;
 }
 
@@ -867,6 +965,8 @@ let garments = [];
 let selectMode = false;
 let selectedIds = new Set();
 let filters = { category: 'all', color: 'all', status: 'all' };
+let activeSection = 'clothes';
+let laundrySelectedIds = new Set();
 const signedUrlCache = new Map(); // path -> { url, expiresAt }
 let editingGarmentId = null;
 let pendingPhotoFile = null;
@@ -897,6 +997,9 @@ const photoPreview = $('#photo-preview');
 const removePhotoWrap = $('#remove-photo-wrap');
 const deleteBtn = $('#delete-garment-btn');
 const colorOptions = $('#color-options');
+const sectionTabsEl = $('#section-tabs');
+const laundryModal = $('#laundry-modal');
+const laundryList = $('#laundry-list');
 
 // ---------------------------------------------------------------------------
 // Toasts
@@ -1064,6 +1167,21 @@ async function getSignedUrl(path) {
 // ---------------------------------------------------------------------------
 // Laundry actions
 // ---------------------------------------------------------------------------
+
+// Direct, toast-free dirty_count adjustment used for one-off corrections
+// (the dirty badge on a card, and the +/- steppers in the laundry basket).
+// No undo toast here — the opposite stepper/badge press *is* the undo.
+function adjustDirtyDirect(garment, delta) {
+  const prev = garment.dirty_count;
+  const next = clamp(prev + delta, 0, garment.quantity);
+  if (next === prev) return;
+  garment.dirty_count = next;
+  renderAll();
+  Promise.resolve(
+    supabase.from('wardrobe_garments').update({ dirty_count: next }).eq('id', garment.id)
+  ).catch((err) => showError(`Sync failed: updating ${garment.name}`, err));
+}
+
 function tapGarment(garment) {
   if (selectMode) {
     toggleSelect(garment.id);
@@ -1117,6 +1235,27 @@ function laundryDoneAction() {
   });
 }
 
+// Marks a specific subset of dirty garments as clean — used by the laundry
+// basket's "Selected are clean" / "Everything else is clean" actions, for
+// the common case of doing a partial load rather than all the laundry at once.
+function markGarmentsClean(ids, label) {
+  if (ids.size === 0) return;
+  const targets = garments.filter((g) => ids.has(g.id) && g.dirty_count > 0);
+  if (targets.length === 0) return;
+  const prevValues = new Map(targets.map((g) => [g.id, g.dirty_count]));
+  runWithUndo({
+    label,
+    apply: () => { garments = resetDirtyForIds(garments, new Set(targets.map((g) => g.id))); },
+    commit: () => Promise.all(
+      targets.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: 0 }).eq('id', g.id))
+    ),
+    revert: () => { for (const g of garments) if (prevValues.has(g.id)) g.dirty_count = prevValues.get(g.id); },
+    revertCommit: () => Promise.all(
+      targets.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: prevValues.get(g.id) }).eq('id', g.id))
+    ),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Select mode
 // ---------------------------------------------------------------------------
@@ -1143,7 +1282,103 @@ function toggleSelect(id) {
 $('#select-toggle-btn').addEventListener('click', toggleSelectMode);
 $('#cancel-select-btn').addEventListener('click', exitSelectMode);
 $('#bulk-dirty-btn').addEventListener('click', bulkMoveToDirty);
-$('#laundry-done-btn').addEventListener('click', laundryDoneAction);
+$('#laundry-done-btn').addEventListener('click', openLaundryModal);
+
+// ---------------------------------------------------------------------------
+// Laundry basket modal — lets you mark only *some* dirty items clean, either
+// by checking off what's done or checking off what's still dirty, since in
+// practice laundry gets done in batches rather than all at once.
+// ---------------------------------------------------------------------------
+function openLaundryModal() {
+  laundrySelectedIds = new Set();
+  renderLaundryModal();
+  laundryModal.showModal();
+}
+
+function renderLaundryModal() {
+  const dirtyItems = garments.filter((g) => g.dirty_count > 0);
+  const hasDirty = dirtyItems.length > 0;
+  $('#laundry-all-clean-btn').hidden = !hasDirty;
+  $('#laundry-selected-clean-btn').hidden = !hasDirty;
+  $('#laundry-rest-clean-btn').hidden = !hasDirty;
+
+  laundryList.innerHTML = '';
+  if (!hasDirty) {
+    const empty = document.createElement('div');
+    empty.className = 'laundry-empty';
+    empty.textContent = 'Nothing dirty right now.';
+    laundryList.appendChild(empty);
+    return;
+  }
+
+  for (const g of dirtyItems) {
+    const row = document.createElement('div');
+    row.className = 'laundry-row';
+
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = laundrySelectedIds.has(g.id);
+    check.addEventListener('change', () => {
+      if (check.checked) laundrySelectedIds.add(g.id);
+      else laundrySelectedIds.delete(g.id);
+    });
+    row.appendChild(check);
+
+    const cat = CATEGORY_BY_ID.get(g.category);
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.background = cat ? cat.color : 'var(--text-faint)';
+    row.appendChild(dot);
+
+    const name = document.createElement('span');
+    name.className = 'laundry-name';
+    name.textContent = g.name;
+    row.appendChild(name);
+
+    const stepper = document.createElement('div');
+    stepper.className = 'stepper';
+    const minusBtn = document.createElement('button');
+    minusBtn.type = 'button';
+    minusBtn.className = 'stepper-btn';
+    minusBtn.textContent = '−';
+    minusBtn.title = 'One fewer dirty';
+    minusBtn.addEventListener('click', () => { adjustDirtyDirect(g, -1); renderLaundryModal(); });
+    const countSpan = document.createElement('span');
+    countSpan.className = 'stepper-count';
+    countSpan.textContent = `${g.dirty_count} dirty`;
+    const plusBtn = document.createElement('button');
+    plusBtn.type = 'button';
+    plusBtn.className = 'stepper-btn';
+    plusBtn.textContent = '+';
+    plusBtn.title = 'One more dirty';
+    plusBtn.disabled = cleanAvailable(g) <= 0;
+    plusBtn.addEventListener('click', () => { adjustDirtyDirect(g, 1); renderLaundryModal(); });
+    stepper.append(minusBtn, countSpan, plusBtn);
+    row.appendChild(stepper);
+
+    laundryList.appendChild(row);
+  }
+}
+
+$('#laundry-modal-close-btn').addEventListener('click', () => laundryModal.close());
+
+$('#laundry-all-clean-btn').addEventListener('click', () => {
+  laundryModal.close();
+  laundryDoneAction();
+});
+
+$('#laundry-selected-clean-btn').addEventListener('click', () => {
+  const ids = new Set(laundrySelectedIds);
+  laundryModal.close();
+  markGarmentsClean(ids, `${ids.size} item${ids.size === 1 ? '' : 's'} marked clean`);
+});
+
+$('#laundry-rest-clean-btn').addEventListener('click', () => {
+  const dirtyItems = garments.filter((g) => g.dirty_count > 0);
+  const restIds = new Set(dirtyItems.filter((g) => !laundrySelectedIds.has(g.id)).map((g) => g.id));
+  laundryModal.close();
+  markGarmentsClean(restIds, `${restIds.size} item${restIds.size === 1 ? '' : 's'} marked clean`);
+});
 
 // ---------------------------------------------------------------------------
 // Delete
@@ -1163,12 +1398,29 @@ function deleteGarmentAction(garment) {
 // Filters
 // ---------------------------------------------------------------------------
 function visibleGarments() {
-  return garments.filter((g) => matchesFilters(g, filters));
+  return garments.filter((g) => matchesFilters(g, { ...filters, section: activeSection }, CATEGORY_SECTION));
 }
 
-function distinctColors() {
-  return [...new Set(garments.map((g) => g.color).filter(Boolean))].sort();
+function distinctColors(scopeToActiveSection) {
+  const pool = scopeToActiveSection
+    ? garments.filter((g) => CATEGORY_SECTION.get(g.category) === activeSection)
+    : garments;
+  return [...new Set(pool.map((g) => g.color).filter(Boolean))].sort();
 }
+
+function renderSectionTabs() {
+  for (const btn of sectionTabsEl.querySelectorAll('.segmented-btn')) {
+    btn.classList.toggle('active', btn.dataset.section === activeSection);
+  }
+}
+
+sectionTabsEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.segmented-btn');
+  if (!btn) return;
+  activeSection = btn.dataset.section;
+  filters.category = 'all';
+  renderAll();
+});
 
 function renderFilterBar() {
   filterBar.innerHTML = '';
@@ -1177,7 +1429,7 @@ function renderFilterBar() {
   allChip.textContent = 'All';
   allChip.addEventListener('click', () => { filters.category = 'all'; renderAll(); });
   filterBar.appendChild(allChip);
-  for (const cat of CATEGORIES) {
+  for (const cat of CATEGORIES.filter((c) => c.section === activeSection)) {
     const chip = document.createElement('button');
     chip.className = 'chip' + (filters.category === cat.id ? ' active' : '');
     chip.addEventListener('click', () => { filters.category = cat.id; renderAll(); });
@@ -1191,7 +1443,7 @@ function renderFilterBar() {
 
   const currentColor = colorFilterSelect.value;
   colorFilterSelect.innerHTML = '<option value="all">Any color</option>';
-  for (const color of distinctColors()) {
+  for (const color of distinctColors(true)) {
     const opt = document.createElement('option');
     opt.value = color;
     opt.textContent = color;
@@ -1218,7 +1470,7 @@ statusFilterEl.addEventListener('click', (e) => {
 // Low stock banner
 // ---------------------------------------------------------------------------
 function renderLowStockBanner() {
-  const totals = categoryCleanTotals(garments);
+  const totals = categoryCleanTotals(garments.filter((g) => CATEGORY_SECTION.get(g.category) === activeSection));
   const lowCategories = [...totals.entries()].filter(([, total]) => isLowStock(total));
   if (lowCategories.length === 0) {
     lowStockBanner.hidden = true;
@@ -1279,9 +1531,15 @@ function createCardElement(garment) {
   }
 
   if (garment.dirty_count > 0) {
-    const badge = document.createElement('div');
+    const badge = document.createElement('button');
+    badge.type = 'button';
     badge.className = 'dirty-badge';
     badge.textContent = `${garment.dirty_count} dirty`;
+    badge.title = 'Tap to move one back to clean';
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      adjustDirtyDirect(garment, -1);
+    });
     card.appendChild(badge);
   }
 
@@ -1339,7 +1597,8 @@ function createCardElement(garment) {
 function renderGrid() {
   const visible = visibleGarments();
   gridEl.innerHTML = '';
-  emptyStateEl.hidden = garments.length !== 0;
+  const sectionGarments = garments.filter((g) => CATEGORY_SECTION.get(g.category) === activeSection);
+  emptyStateEl.hidden = sectionGarments.length !== 0;
   for (const garment of visible) {
     gridEl.appendChild(createCardElement(garment));
   }
@@ -1352,6 +1611,7 @@ function renderSelectBar() {
 
 function renderAll() {
   renderHeaderStats();
+  renderSectionTabs();
   renderLowStockBanner();
   renderFilterBar();
   renderStatusFilter();
@@ -1362,21 +1622,28 @@ function renderAll() {
 // ---------------------------------------------------------------------------
 // Add / edit modal
 // ---------------------------------------------------------------------------
+const SECTION_LABELS = { clothes: 'Clothes', household: 'Household' };
+
 function populateCategorySelect() {
   const sel = $('#f-category');
   sel.innerHTML = '';
-  for (const cat of CATEGORIES) {
-    const opt = document.createElement('option');
-    opt.value = cat.id;
-    opt.textContent = cat.label;
-    sel.appendChild(opt);
+  for (const sectionId of Object.keys(SECTION_LABELS)) {
+    const group = document.createElement('optgroup');
+    group.label = SECTION_LABELS[sectionId];
+    for (const cat of CATEGORIES.filter((c) => c.section === sectionId)) {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.textContent = cat.label;
+      group.appendChild(opt);
+    }
+    sel.appendChild(group);
   }
 }
 populateCategorySelect();
 
 function populateColorDatalist() {
   colorOptions.innerHTML = '';
-  for (const color of distinctColors()) {
+  for (const color of distinctColors(false)) {
     const opt = document.createElement('option');
     opt.value = color;
     colorOptions.appendChild(opt);
@@ -1575,9 +1842,13 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
     return;
   }
+  if (laundryModal.open) {
+    if (e.key === 'Escape') laundryModal.close();
+    return;
+  }
   if (e.key === 'a') openAddModal();
   else if (e.key === 's') toggleSelectMode();
-  else if (e.key === 'l') laundryDoneAction();
+  else if (e.key === 'l') openLaundryModal();
   else if (e.key === 'Escape' && selectMode) exitSelectMode();
 });
 

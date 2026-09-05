@@ -24,6 +24,7 @@ const {
   incrementDirty,
   decrementDirty,
   resetAllDirty,
+  resetDirtyForIds,
   snapshotDirtyCounts,
   categoryCleanTotals,
   isLowStock,
@@ -102,6 +103,24 @@ test('resetAllDirty does not mutate the original array (safe for optimistic roll
   assert.equal(original[0].dirty_count, 3);
 });
 
+test('resetDirtyForIds clears dirty_count only for the given ids (partial laundry loads)', () => {
+  const garments = [
+    garment({ id: 'a', quantity: 5, dirty_count: 3 }),
+    garment({ id: 'b', quantity: 2, dirty_count: 2 }),
+    garment({ id: 'c', quantity: 1, dirty_count: 1 }),
+  ];
+  const result = resetDirtyForIds(garments, new Set(['a', 'c']));
+  assert.equal(result.find((g) => g.id === 'a').dirty_count, 0);
+  assert.equal(result.find((g) => g.id === 'b').dirty_count, 2); // untouched
+  assert.equal(result.find((g) => g.id === 'c').dirty_count, 0);
+});
+
+test('resetDirtyForIds does not mutate the original array', () => {
+  const original = [garment({ id: 'a', quantity: 5, dirty_count: 3 })];
+  resetDirtyForIds(original, new Set(['a']));
+  assert.equal(original[0].dirty_count, 3);
+});
+
 test('snapshotDirtyCounts captures prior values for undo', () => {
   const garments = [
     garment({ id: 'a', dirty_count: 3 }),
@@ -176,4 +195,21 @@ test('matchesFilters filters by category, color, and clean/dirty status', () => 
   assert.equal(matchesFilters(g, { category: 'all', color: 'blue', status: 'all' }), false);
   assert.equal(matchesFilters(g, { category: 'all', color: 'all', status: 'clean' }), false);
   assert.equal(matchesFilters(g, { category: 'all', color: 'all', status: 'dirty' }), true);
+});
+
+test('matchesFilters scopes by section when a category-to-section map is given', () => {
+  const categorySectionById = new Map([
+    ['tops', 'clothes'],
+    ['towels', 'household'],
+  ]);
+  const shirt = garment({ category: 'tops' });
+  const towel = garment({ category: 'towels' });
+  assert.equal(matchesFilters(shirt, { category: 'all', color: 'all', status: 'all', section: 'clothes' }, categorySectionById), true);
+  assert.equal(matchesFilters(towel, { category: 'all', color: 'all', status: 'all', section: 'clothes' }, categorySectionById), false);
+  assert.equal(matchesFilters(towel, { category: 'all', color: 'all', status: 'all', section: 'household' }, categorySectionById), true);
+});
+
+test('matchesFilters ignores section filtering when no category-to-section map is passed', () => {
+  const g = garment({ category: 'tops' });
+  assert.equal(matchesFilters(g, { category: 'all', color: 'all', status: 'all', section: 'household' }), true);
 });

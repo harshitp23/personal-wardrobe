@@ -14,7 +14,8 @@ create table if not exists wardrobe_garments (
   name            text not null,
   category        text not null check (category in (
                     'tops', 'bottoms', 'outerwear', 'footwear', 'socks',
-                    'underwear', 'sleepwear', 'activewear', 'formal', 'accessories'
+                    'underwear', 'sleepwear', 'activewear', 'formal', 'accessories',
+                    'towels', 'bedding'
                   )),
   subcategory     text,
   color           text,
@@ -149,3 +150,17 @@ create policy "wardrobe_storage_owner_delete"
     bucket_id = 'wardrobe'
     and auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- ============================================================================
+-- Migration: add 'towels' and 'bedding' categories (Household section)
+-- Run this once if wardrobe_garments already exists from an earlier version
+-- of this file — the CREATE TABLE above won't re-apply to an existing table.
+-- ============================================================================
+alter table wardrobe_garments drop constraint wardrobe_garments_category_check;
+
+alter table wardrobe_garments add constraint wardrobe_garments_category_check
+  check (category in (
+    'tops', 'bottoms', 'outerwear', 'footwear', 'socks',
+    'underwear', 'sleepwear', 'activewear', 'formal', 'accessories',
+    'towels', 'bedding'
+  ));
