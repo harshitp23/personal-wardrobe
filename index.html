@@ -934,13 +934,18 @@ function showError(message, err) {
 async function runWithUndo({ label, apply, commit, revert, revertCommit }) {
   apply();
   renderAll();
-  commit().catch((err) => showError(`Sync failed: ${label}`, err));
+  // commit/revertCommit are sometimes a raw Supabase query builder (e.g.
+  // supabase.from(...).update(...)) rather than a real Promise — those are
+  // "thenable" (they implement .then so `await` works) but have no .catch,
+  // so calling .catch() on them directly throws before the request ever
+  // fires. Promise.resolve(...) adopts either shape into a real Promise.
+  Promise.resolve(commit()).catch((err) => showError(`Sync failed: ${label}`, err));
   showToast({
     message: label,
     onUndo: () => {
       revert();
       renderAll();
-      revertCommit().catch((err) => showError(`Undo failed: ${label}`, err));
+      Promise.resolve(revertCommit()).catch((err) => showError(`Undo failed: ${label}`, err));
     },
   });
 }
