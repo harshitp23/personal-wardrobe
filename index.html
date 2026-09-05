@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wardrobe</title>
+<meta name="theme-color" content="#0d0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wardrobe">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #0d0f13;
+    --bg-elevated: #14171d;
+    --bg-card: #1b1f26;
+    --bg-hover: #232833;
+    --border: #262b33;
+    --text: #e9e8e6;
+    --text-dim: #9aa0aa;
+    --text-faint: #676d78;
+    --accent: #22d3ee;
+    --accent-text: #04222a;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --warning-text: #2a1e02;
+    --success: #34d399;
+    --radius: 14px;
+    --radius-sm: 8px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+  button, input, select, textarea { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 340px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+  }
+  .login-card h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+  }
+  .login-card p.sub {
+    margin: 0 0 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 15px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn:hover { background: var(--bg-hover); }
+  .btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .error-text { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 16px; }
+
+  #app { max-width: 720px; margin: 0 auto; padding: 0 0 90px; }
+
+  header.appbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(13,15,19,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  }
+  .appbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .appbar-title { font-size: 18px; font-weight: 700; margin: 0; }
+  .appbar-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .icon-btn:hover { background: var(--bg-hover); }
+
+  #low-stock-banner {
+    margin: 10px 14px 0;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: var(--warning);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  #low-stock-banner strong { color: var(--warning); }
+
+  #filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 14px 4px;
+    scrollbar-width: none;
+  }
+  #filter-bar::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  select.chip-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+  }
+
+  #select-bar {
+    margin: 10px 14px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  #select-bar .actions { display: flex; gap: 8px; }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    text-align: left;
+    border-top: 3px solid var(--card-color, var(--border));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .card.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .card.none-clean { opacity: 0.55; }
+  .card .thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    font-size: 28px;
+    overflow: hidden;
+  }
+  .card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .body { padding: 8px 9px 9px; }
+  .card .name { font-size: 13px; font-weight: 600; line-height: 1.25; margin: 0 0 3px; }
+  .card .meta { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
+  .card .clean-count { color: var(--success); font-weight: 600; }
+  .card .clean-count.zero { color: var(--danger); }
+  .card .dirty-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(0,0,0,0.6);
+    color: var(--warning);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+  .card .edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: var(--text);
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card .select-check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.6);
+    background: rgba(0,0,0,0.35);
+  }
+  .card.selected .select-check { background: var(--accent); border-color: var(--accent); }
+
+  #empty-state {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 60px 20px;
+    font-size: 14px;
+  }
+
+  #fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    font-size: 26px;
+    font-weight: 400;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    z-index: 15;
+  }
+
+  dialog#garment-modal {
+    border: none;
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    color: var(--text);
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100vh - 60px);
+    padding: 0;
+  }
+  dialog#garment-modal::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h2 { font-size: 16px; margin: 0; }
+  .modal-body { padding: 16px 18px; overflow-y: auto; max-height: calc(100vh - 180px); }
+  .modal-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .photo-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .photo-preview {
+    width: 72px; height: 72px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    color: var(--text-faint);
+    font-size: 22px;
+    flex: 0 0 auto;
+  }
+  .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+  details.more-details { margin-top: 4px; border-top: 1px solid var(--border); padding-top: 10px; }
+  details.more-details summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 0;
+  }
+  details.more-details .field { margin-top: 12px; }
+
+  #toast-container {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .toast {
+    pointer-events: auto;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    max-width: calc(100vw - 32px);
+  }
+  .toast.error { border-left-color: var(--danger); }
+  .toast .undo-link { color: var(--accent); font-weight: 600; white-space: nowrap; background: none; border: none; padding: 0; font-size: 13px; }
+
+  kbd {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
+  #shortcuts-hint {
+    display: none;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 11px;
+    padding: 6px 14px 0;
+  }
+  @media (min-width: 700px) {
+    #shortcuts-hint { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Wardrobe</h1>
+    <p class="sub">Sign in to continue</p>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Log in</button>
+      <div class="error-text" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header class="appbar">
+    <div class="appbar-row">
+      <h1 class="appbar-title">Wardrobe</h1>
+      <div class="appbar-actions">
+        <button class="icon-btn" id="select-toggle-btn" title="Select multiple (s)">☑</button>
+        <button class="btn btn-sm" id="laundry-done-btn" title="Laundry done (l)">Laundry done</button>
+        <button class="icon-btn" id="logout-btn" title="Log out">⎋</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="shortcuts-hint"><kbd>a</kbd> add &nbsp; <kbd>s</kbd> select &nbsp; <kbd>l</kbd> laundry done &nbsp; <kbd>esc</kbd> cancel</div>
+
+  <div id="low-stock-banner" hidden></div>
+
+  <div id="filter-bar">
+    <button class="chip active" data-filter-category="all">All</button>
+  </div>
+  <div id="filter-bar-2" style="display:flex; gap:8px; padding:0 14px 4px;">
+    <select class="chip-select" id="color-filter"><option value="all">Any color</option></select>
+    <select class="chip-select" id="status-filter">
+      <option value="all">All</option>
+      <option value="clean">Clean available</option>
+      <option value="dirty">Has dirty</option>
+    </select>
+  </div>
+
+  <div id="select-bar" hidden>
+    <span id="select-count">0 selected</span>
+    <div class="actions">
+      <button class="btn btn-sm" id="bulk-dirty-btn">Move to dirty</button>
+      <button class="btn btn-sm" id="cancel-select-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="grid"></div>
+  <div id="empty-state" hidden>No garments yet. Tap + to add your first one.</div>
+</div>
+
+<button id="fab" hidden title="Add garment (a)">+</button>
+
+<dialog id="garment-modal">
+  <form id="garment-form">
+    <div class="modal-header">
+      <h2 id="modal-title">Add garment</h2>
+      <button type="button" class="icon-btn" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="photo-picker">
+        <div class="photo-preview" id="photo-preview">📷</div>
+        <div>
+          <input type="file" accept="image/*" id="photo-input">
+          <div id="remove-photo-wrap" hidden>
+            <button type="button" class="btn btn-sm" id="remove-photo-btn">Remove photo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-name">Name</label>
+        <input type="text" id="f-name" required>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="f-category">Category</label>
+          <select id="f-category" required></select>
+        </div>
+        <div class="field">
+          <label for="f-quantity">Quantity</label>
+          <input type="number" id="f-quantity" min="1" value="1" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-color">Color</label>
+        <input type="text" id="f-color" list="color-options">
+        <datalist id="color-options"></datalist>
+      </div>
+
+      <details class="more-details">
+        <summary>More details</summary>
+        <div class="field">
+          <label for="f-subcategory">Subcategory</label>
+          <input type="text" id="f-subcategory">
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="f-brand">Brand</label>
+            <input type="text" id="f-brand">
+          </div>
+          <div class="field">
+            <label for="f-size">Size</label>
+            <input type="text" id="f-size">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="f-price">Purchase price</label>
+            <input type="number" step="0.01" min="0" id="f-price">
+          </div>
+          <div class="field">
+            <label for="f-date">Purchase date</label>
+            <input type="date" id="f-date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-care">Care notes</label>
+          <textarea id="f-care" rows="2"></textarea>
+        </div>
+      </details>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger" id="delete-garment-btn" hidden>Delete</button>
+      <button type="submit" class="btn btn-primary" id="save-garment-btn" style="margin-left:auto;">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ---------------------------------------------------------------------------
+// Config — replace these two placeholders with your Supabase project values.
+// ---------------------------------------------------------------------------
+const SUPABASE_URL = 'https://yjqqzatzzdwpiuiqwisj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqcXF6YXR6emR3cGl1aXF3aXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NDE0MDMsImV4cCI6MjEwNDExNzQwM30.Msz2NfptzXdLAMI-ZDKyVIp3qLAr3ZAtdMli-GRZHJ4';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
+
+const CATEGORIES = [
+  { id: 'tops', label: 'Tops', color: '#60a5fa' },
+  { id: 'bottoms', label: 'Bottoms', color: '#34d399' },
+  { id: 'outerwear', label: 'Outerwear', color: '#fb923c' },
+  { id: 'footwear', label: 'Footwear', color: '#f472b6' },
+  { id: 'socks', label: 'Socks', color: '#a78bfa' },
+  { id: 'underwear', label: 'Underwear', color: '#38bdf8' },
+  { id: 'sleepwear', label: 'Sleepwear', color: '#94a3b8' },
+  { id: 'activewear', label: 'Activewear', color: '#fb7185' },
+  { id: 'formal', label: 'Formal', color: '#eab308' },
+  { id: 'accessories', label: 'Accessories', color: '#2dd4bf' },
+];
+const CATEGORY_BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]));
+
+// ==== PURE-LOGIC-START ====
+// No DOM, no Supabase — safe to unit test in isolation (see wardrobe.test.js).
+
+function cleanAvailable(garment) {
+  return garment.quantity - garment.dirty_count;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function incrementDirty(garment) {
+  if (cleanAvailable(garment) <= 0) return null;
+  return clamp(garment.dirty_count + 1, 0, garment.quantity);
+}
+
+function decrementDirty(garment) {
+  return clamp(garment.dirty_count - 1, 0, garment.quantity);
+}
+
+function resetAllDirty(garments) {
+  return garments.map((g) => ({ ...g, dirty_count: 0 }));
+}
+
+function snapshotDirtyCounts(garments) {
+  const snapshot = new Map();
+  for (const g of garments) snapshot.set(g.id, g.dirty_count);
+  return snapshot;
+}
+
+function categoryCleanTotals(garments) {
+  const totals = new Map();
+  for (const g of garments) {
+    if (g.is_archived) continue;
+    const prev = totals.get(g.category) || 0;
+    totals.set(g.category, prev + cleanAvailable(g));
+  }
+  return totals;
+}
+
+const LOW_STOCK_THRESHOLD = 2;
+
+function isLowStock(cleanTotal) {
+  return cleanTotal <= LOW_STOCK_THRESHOLD;
+}
+
+function isOutfitWearable(garmentIds, garmentsById) {
+  return garmentIds.every((id) => {
+    const g = garmentsById.get(id);
+    return g && cleanAvailable(g) > 0;
+  });
+}
+
+function matchesFilters(garment, filters) {
+  if (filters.category && filters.category !== 'all' && garment.category !== filters.category) return false;
+  if (filters.color && filters.color !== 'all' && (garment.color || '') !== filters.color) return false;
+  if (filters.status === 'clean' && cleanAvailable(garment) <= 0) return false;
+  if (filters.status === 'dirty' && garment.dirty_count <= 0) return false;
+  return true;
+}
+
+// ==== PURE-LOGIC-END ====
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let session = null;
+let garments = [];
+let selectMode = false;
+let selectedIds = new Set();
+let filters = { category: 'all', color: 'all', status: 'all' };
+const signedUrlCache = new Map(); // path -> { url, expiresAt }
+let editingGarmentId = null;
+let pendingPhotoFile = null;
+let removePhotoRequested = false;
+
+// ---------------------------------------------------------------------------
+// DOM refs
+// ---------------------------------------------------------------------------
+const $ = (sel) => document.querySelector(sel);
+const loginScreen = $('#login-screen');
+const appEl = $('#app');
+const fab = $('#fab');
+const gridEl = $('#grid');
+const emptyStateEl = $('#empty-state');
+const lowStockBanner = $('#low-stock-banner');
+const filterBar = $('#filter-bar');
+const colorFilterSelect = $('#color-filter');
+const statusFilterSelect = $('#status-filter');
+const selectBar = $('#select-bar');
+const selectCountEl = $('#select-count');
+const toastContainer = $('#toast-container');
+const modal = $('#garment-modal');
+const garmentForm = $('#garment-form');
+const modalTitle = $('#modal-title');
+const photoInput = $('#photo-input');
+const photoPreview = $('#photo-preview');
+const removePhotoWrap = $('#remove-photo-wrap');
+const deleteBtn = $('#delete-garment-btn');
+const colorOptions = $('#color-options');
+
+// ---------------------------------------------------------------------------
+// Toasts
+// ---------------------------------------------------------------------------
+function showToast({ message, isError = false, onUndo = null, duration = 5000 }) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (isError ? ' error' : '');
+  const msg = document.createElement('span');
+  msg.textContent = message;
+  el.appendChild(msg);
+  if (onUndo) {
+    const btn = document.createElement('button');
+    btn.className = 'undo-link';
+    btn.textContent = 'Undo';
+    btn.addEventListener('click', () => {
+      onUndo();
+      el.remove();
+    });
+    el.appendChild(btn);
+  }
+  toastContainer.appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+function showError(message, err) {
+  console.error(message, err);
+  showToast({ message, isError: true, duration: 6000 });
+}
+
+// ---------------------------------------------------------------------------
+// Generic optimistic-action-with-undo helper.
+// `apply` mutates local `garments` state and returns nothing; `revert` undoes it.
+// `commit`/`revertCommit` are async Supabase calls fired in the background.
+// ---------------------------------------------------------------------------
+async function runWithUndo({ label, apply, commit, revert, revertCommit }) {
+  apply();
+  renderAll();
+  commit().catch((err) => showError(`Sync failed: ${label}`, err));
+  showToast({
+    message: label,
+    onUndo: () => {
+      revert();
+      renderAll();
+      revertCommit().catch((err) => showError(`Undo failed: ${label}`, err));
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+async function initAuth() {
+  const { data } = await supabase.auth.getSession();
+  session = data.session;
+  supabase.auth.onAuthStateChange((_event, newSession) => {
+    session = newSession;
+    reflectAuthState();
+    if (session) loadGarments();
+  });
+  reflectAuthState();
+  if (session) await loadGarments();
+}
+
+function reflectAuthState() {
+  const loggedIn = !!session;
+  loginScreen.hidden = loggedIn;
+  appEl.hidden = !loggedIn;
+  fab.hidden = !loggedIn;
+}
+
+$('#login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('#login-email').value.trim();
+  const password = $('#login-password').value;
+  const errorEl = $('#login-error');
+  errorEl.textContent = '';
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) errorEl.textContent = error.message;
+});
+
+$('#logout-btn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+});
+
+// ---------------------------------------------------------------------------
+// Data loading
+// ---------------------------------------------------------------------------
+async function loadGarments() {
+  const { data, error } = await supabase
+    .from('wardrobe_garments')
+    .select('*')
+    .eq('is_archived', false)
+    .order('created_at', { ascending: false });
+  if (error) {
+    showError('Could not load garments', error);
+    return;
+  }
+  garments = data || [];
+  renderAll();
+}
+
+// ---------------------------------------------------------------------------
+// Images
+// ---------------------------------------------------------------------------
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxEdge = 800;
+      const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+      const width = Math.round(img.width * scale);
+      const height = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(objectUrl);
+          if (blob) resolve(blob);
+          else reject(new Error('Image compression failed'));
+        },
+        'image/jpeg',
+        0.7
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not read image'));
+    };
+    img.src = objectUrl;
+  });
+}
+
+async function uploadGarmentPhoto(garmentId, blob) {
+  const path = `${session.user.id}/${garmentId}.jpg`;
+  const { error } = await supabase.storage
+    .from('wardrobe')
+    .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+  if (error) throw error;
+  signedUrlCache.delete(path);
+  return path;
+}
+
+async function getSignedUrl(path) {
+  if (!path) return null;
+  const cached = signedUrlCache.get(path);
+  if (cached && cached.expiresAt > Date.now() + 60000) return cached.url;
+  const { data, error } = await supabase.storage.from('wardrobe').createSignedUrl(path, 3600);
+  if (error) {
+    console.error('signed url error', error);
+    return null;
+  }
+  signedUrlCache.set(path, { url: data.signedUrl, expiresAt: Date.now() + 3600 * 1000 });
+  return data.signedUrl;
+}
+
+// ---------------------------------------------------------------------------
+// Laundry actions
+// ---------------------------------------------------------------------------
+function tapGarment(garment) {
+  if (selectMode) {
+    toggleSelect(garment.id);
+    return;
+  }
+  const newDirty = incrementDirty(garment);
+  if (newDirty === null) return; // nothing clean left, ignore tap
+  const prevDirty = garment.dirty_count;
+  runWithUndo({
+    label: `${garment.name} moved to dirty`,
+    apply: () => { garment.dirty_count = newDirty; },
+    commit: () => supabase.from('wardrobe_garments').update({ dirty_count: newDirty }).eq('id', garment.id),
+    revert: () => { garment.dirty_count = prevDirty; },
+    revertCommit: () => supabase.from('wardrobe_garments').update({ dirty_count: prevDirty }).eq('id', garment.id),
+  });
+}
+
+function bulkMoveToDirty() {
+  const targets = garments.filter((g) => selectedIds.has(g.id) && cleanAvailable(g) > 0);
+  if (targets.length === 0) return;
+  const prevValues = new Map(targets.map((g) => [g.id, g.dirty_count]));
+  const newValues = new Map(targets.map((g) => [g.id, incrementDirty(g)]));
+  runWithUndo({
+    label: `${targets.length} item${targets.length === 1 ? '' : 's'} moved to dirty`,
+    apply: () => { for (const g of targets) g.dirty_count = newValues.get(g.id); },
+    commit: () => Promise.all(
+      targets.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: newValues.get(g.id) }).eq('id', g.id))
+    ),
+    revert: () => { for (const g of targets) g.dirty_count = prevValues.get(g.id); },
+    revertCommit: () => Promise.all(
+      targets.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: prevValues.get(g.id) }).eq('id', g.id))
+    ),
+  });
+  exitSelectMode();
+}
+
+function laundryDoneAction() {
+  const dirtyGarments = garments.filter((g) => g.dirty_count > 0);
+  if (dirtyGarments.length === 0) return;
+  const prevValues = snapshotDirtyCounts(garments);
+  runWithUndo({
+    label: 'Laundry done — everything marked clean',
+    apply: () => { garments = resetAllDirty(garments); },
+    commit: () => Promise.all(
+      dirtyGarments.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: 0 }).eq('id', g.id))
+    ),
+    revert: () => { for (const g of garments) g.dirty_count = prevValues.get(g.id) ?? g.dirty_count; },
+    revertCommit: () => Promise.all(
+      dirtyGarments.map((g) => supabase.from('wardrobe_garments').update({ dirty_count: prevValues.get(g.id) }).eq('id', g.id))
+    ),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Select mode
+// ---------------------------------------------------------------------------
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  if (!selectMode) selectedIds.clear();
+  selectBar.hidden = !selectMode;
+  renderAll();
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedIds.clear();
+  selectBar.hidden = true;
+  renderAll();
+}
+
+function toggleSelect(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  renderAll();
+}
+
+$('#select-toggle-btn').addEventListener('click', toggleSelectMode);
+$('#cancel-select-btn').addEventListener('click', exitSelectMode);
+$('#bulk-dirty-btn').addEventListener('click', bulkMoveToDirty);
+$('#laundry-done-btn').addEventListener('click', laundryDoneAction);
+
+// ---------------------------------------------------------------------------
+// Delete
+// ---------------------------------------------------------------------------
+function deleteGarmentAction(garment) {
+  const index = garments.findIndex((g) => g.id === garment.id);
+  runWithUndo({
+    label: `Deleted ${garment.name}`,
+    apply: () => { garments = garments.filter((g) => g.id !== garment.id); },
+    commit: () => supabase.from('wardrobe_garments').delete().eq('id', garment.id),
+    revert: () => { garments.splice(Math.min(index, garments.length), 0, garment); },
+    revertCommit: () => supabase.from('wardrobe_garments').insert(garment),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Filters
+// ---------------------------------------------------------------------------
+function visibleGarments() {
+  return garments.filter((g) => matchesFilters(g, filters));
+}
+
+function distinctColors() {
+  return [...new Set(garments.map((g) => g.color).filter(Boolean))].sort();
+}
+
+function renderFilterBar() {
+  filterBar.innerHTML = '';
+  const allChip = document.createElement('button');
+  allChip.className = 'chip' + (filters.category === 'all' ? ' active' : '');
+  allChip.textContent = 'All';
+  allChip.addEventListener('click', () => { filters.category = 'all'; renderAll(); });
+  filterBar.appendChild(allChip);
+  for (const cat of CATEGORIES) {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (filters.category === cat.id ? ' active' : '');
+    chip.textContent = cat.label;
+    if (filters.category === cat.id) chip.style.background = cat.color;
+    chip.addEventListener('click', () => { filters.category = cat.id; renderAll(); });
+    filterBar.appendChild(chip);
+  }
+
+  const currentColor = colorFilterSelect.value;
+  colorFilterSelect.innerHTML = '<option value="all">Any color</option>';
+  for (const color of distinctColors()) {
+    const opt = document.createElement('option');
+    opt.value = color;
+    opt.textContent = color;
+    colorFilterSelect.appendChild(opt);
+  }
+  colorFilterSelect.value = filters.color === 'all' ? 'all' : currentColor || filters.color;
+}
+
+colorFilterSelect.addEventListener('change', () => { filters.color = colorFilterSelect.value; renderAll(); });
+statusFilterSelect.addEventListener('change', () => { filters.status = statusFilterSelect.value; renderAll(); });
+
+// ---------------------------------------------------------------------------
+// Low stock banner
+// ---------------------------------------------------------------------------
+function renderLowStockBanner() {
+  const totals = categoryCleanTotals(garments);
+  const lowCategories = [...totals.entries()].filter(([, total]) => isLowStock(total));
+  if (lowCategories.length === 0) {
+    lowStockBanner.hidden = true;
+    return;
+  }
+  lowStockBanner.hidden = false;
+  lowStockBanner.innerHTML = '';
+  for (const [catId, total] of lowCategories) {
+    const cat = CATEGORY_BY_ID.get(catId);
+    const span = document.createElement('span');
+    span.innerHTML = `<strong>${cat ? cat.label : catId}</strong>: ${total} clean left`;
+    lowStockBanner.appendChild(span);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Grid rendering
+// ---------------------------------------------------------------------------
+function createCardElement(garment) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const cat = CATEGORY_BY_ID.get(garment.category);
+  if (cat) card.style.setProperty('--card-color', cat.color);
+  const clean = cleanAvailable(garment);
+  if (clean <= 0) card.classList.add('none-clean');
+  if (selectMode && selectedIds.has(garment.id)) card.classList.add('selected');
+
+  const thumb = document.createElement('div');
+  thumb.className = 'thumb';
+  thumb.textContent = '👕';
+  card.appendChild(thumb);
+
+  if (garment.image_path) {
+    getSignedUrl(garment.image_path).then((url) => {
+      if (!url) return;
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = garment.name;
+      thumb.textContent = '';
+      thumb.appendChild(img);
+    });
+  }
+
+  if (garment.dirty_count > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'dirty-badge';
+    badge.textContent = `${garment.dirty_count} dirty`;
+    card.appendChild(badge);
+  }
+
+  if (selectMode) {
+    const check = document.createElement('div');
+    check.className = 'select-check';
+    card.appendChild(check);
+  } else {
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = '✎';
+    editBtn.type = 'button';
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditModal(garment);
+    });
+    card.appendChild(editBtn);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'body';
+  const name = document.createElement('p');
+  name.className = 'name';
+  name.textContent = garment.name;
+  body.appendChild(name);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const cleanSpan = document.createElement('span');
+  cleanSpan.className = 'clean-count' + (clean <= 0 ? ' zero' : '');
+  cleanSpan.textContent = `${clean}/${garment.quantity} clean`;
+  meta.appendChild(cleanSpan);
+  if (garment.color) {
+    const colorSpan = document.createElement('span');
+    colorSpan.textContent = garment.color;
+    meta.appendChild(colorSpan);
+  }
+  body.appendChild(meta);
+  card.appendChild(body);
+
+  card.addEventListener('click', () => tapGarment(garment));
+  return card;
+}
+
+function renderGrid() {
+  const visible = visibleGarments();
+  gridEl.innerHTML = '';
+  emptyStateEl.hidden = garments.length !== 0;
+  for (const garment of visible) {
+    gridEl.appendChild(createCardElement(garment));
+  }
+}
+
+function renderSelectBar() {
+  selectBar.hidden = !selectMode;
+  selectCountEl.textContent = `${selectedIds.size} selected`;
+}
+
+function renderAll() {
+  renderLowStockBanner();
+  renderFilterBar();
+  renderSelectBar();
+  renderGrid();
+}
+
+// ---------------------------------------------------------------------------
+// Add / edit modal
+// ---------------------------------------------------------------------------
+function populateCategorySelect() {
+  const sel = $('#f-category');
+  sel.innerHTML = '';
+  for (const cat of CATEGORIES) {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.label;
+    sel.appendChild(opt);
+  }
+}
+populateCategorySelect();
+
+function populateColorDatalist() {
+  colorOptions.innerHTML = '';
+  for (const color of distinctColors()) {
+    const opt = document.createElement('option');
+    opt.value = color;
+    colorOptions.appendChild(opt);
+  }
+}
+
+function resetForm() {
+  garmentForm.reset();
+  $('#f-quantity').value = 1;
+  photoPreview.innerHTML = '📷';
+  removePhotoWrap.hidden = true;
+  pendingPhotoFile = null;
+  removePhotoRequested = false;
+  editingGarmentId = null;
+  deleteBtn.hidden = true;
+}
+
+function openAddModal() {
+  resetForm();
+  populateColorDatalist();
+  modalTitle.textContent = 'Add garment';
+  modal.showModal();
+}
+
+function openEditModal(garment) {
+  resetForm();
+  populateColorDatalist();
+  editingGarmentId = garment.id;
+  modalTitle.textContent = 'Edit garment';
+  deleteBtn.hidden = false;
+  $('#f-name').value = garment.name || '';
+  $('#f-category').value = garment.category;
+  $('#f-quantity').value = garment.quantity;
+  $('#f-color').value = garment.color || '';
+  $('#f-subcategory').value = garment.subcategory || '';
+  $('#f-brand').value = garment.brand || '';
+  $('#f-size').value = garment.size || '';
+  $('#f-price').value = garment.purchase_price ?? '';
+  $('#f-date').value = garment.purchase_date || '';
+  $('#f-care').value = garment.care_notes || '';
+  if (garment.image_path) {
+    removePhotoWrap.hidden = false;
+    getSignedUrl(garment.image_path).then((url) => {
+      if (!url) return;
+      photoPreview.innerHTML = `<img src="${url}" alt="">`;
+    });
+  }
+  modal.showModal();
+}
+
+function closeModal() {
+  modal.close();
+  resetForm();
+}
+
+$('#modal-close-btn').addEventListener('click', closeModal);
+fab.addEventListener('click', openAddModal);
+
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+  pendingPhotoFile = file;
+  removePhotoRequested = false;
+  const url = URL.createObjectURL(file);
+  photoPreview.innerHTML = `<img src="${url}" alt="">`;
+});
+
+$('#remove-photo-btn').addEventListener('click', () => {
+  removePhotoRequested = true;
+  pendingPhotoFile = null;
+  photoInput.value = '';
+  photoPreview.innerHTML = '📷';
+  removePhotoWrap.hidden = true;
+});
+
+function readFormValues() {
+  const quantity = clamp(parseInt($('#f-quantity').value, 10) || 1, 1, 9999);
+  return {
+    name: $('#f-name').value.trim(),
+    category: $('#f-category').value,
+    quantity,
+    color: $('#f-color').value.trim() || null,
+    subcategory: $('#f-subcategory').value.trim() || null,
+    brand: $('#f-brand').value.trim() || null,
+    size: $('#f-size').value.trim() || null,
+    purchase_price: $('#f-price').value === '' ? null : parseFloat($('#f-price').value),
+    purchase_date: $('#f-date').value || null,
+    care_notes: $('#f-care').value.trim() || null,
+  };
+}
+
+garmentForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const values = readFormValues();
+  if (!values.name || !values.category) return;
+
+  if (editingGarmentId) {
+    await saveEditedGarment(editingGarmentId, values);
+  } else {
+    await saveNewGarment(values);
+  }
+  closeModal();
+});
+
+async function saveNewGarment(values) {
+  const id = crypto.randomUUID();
+  const optimisticGarment = {
+    id,
+    user_id: session.user.id,
+    name: values.name,
+    category: values.category,
+    subcategory: values.subcategory,
+    color: values.color,
+    quantity: values.quantity,
+    dirty_count: 0,
+    image_path: null,
+    brand: values.brand,
+    size: values.size,
+    purchase_price: values.purchase_price,
+    purchase_date: values.purchase_date,
+    care_notes: values.care_notes,
+    last_worn: null,
+    wear_count: 0,
+    is_archived: false,
+    created_at: new Date().toISOString(),
+  };
+  const photoFile = pendingPhotoFile;
+
+  runWithUndo({
+    label: `Added ${optimisticGarment.name}`,
+    apply: () => { garments = [optimisticGarment, ...garments]; },
+    commit: async () => {
+      const { error } = await supabase.from('wardrobe_garments').insert(optimisticGarment);
+      if (error) throw error;
+      if (photoFile) {
+        const blob = await compressImage(photoFile);
+        const path = await uploadGarmentPhoto(id, blob);
+        optimisticGarment.image_path = path;
+        await supabase.from('wardrobe_garments').update({ image_path: path }).eq('id', id);
+        renderAll();
+      }
+    },
+    revert: () => { garments = garments.filter((g) => g.id !== id); },
+    revertCommit: () => supabase.from('wardrobe_garments').delete().eq('id', id),
+  });
+}
+
+async function saveEditedGarment(id, values) {
+  const garment = garments.find((g) => g.id === id);
+  if (!garment) return;
+  const previous = { ...garment };
+  const photoFile = pendingPhotoFile;
+  const removePhoto = removePhotoRequested;
+
+  const patch = { ...values };
+  patch.dirty_count = clamp(garment.dirty_count, 0, values.quantity);
+  if (removePhoto) patch.image_path = null;
+
+  runWithUndo({
+    label: `Updated ${values.name}`,
+    apply: () => { Object.assign(garment, patch); },
+    commit: async () => {
+      const { error } = await supabase.from('wardrobe_garments').update(patch).eq('id', id);
+      if (error) throw error;
+      if (removePhoto && previous.image_path) {
+        supabase.storage.from('wardrobe').remove([previous.image_path]).catch(() => {});
+      }
+      if (photoFile) {
+        const blob = await compressImage(photoFile);
+        const path = await uploadGarmentPhoto(id, blob);
+        garment.image_path = path;
+        await supabase.from('wardrobe_garments').update({ image_path: path }).eq('id', id);
+        renderAll();
+      }
+    },
+    revert: () => { Object.assign(garment, previous); },
+    revertCommit: () => supabase.from('wardrobe_garments').update(previous).eq('id', id),
+  });
+}
+
+deleteBtn.addEventListener('click', () => {
+  const garment = garments.find((g) => g.id === editingGarmentId);
+  if (!garment) return;
+  closeModal();
+  deleteGarmentAction(garment);
+});
+
+// ---------------------------------------------------------------------------
+// Keyboard shortcuts (desktop)
+// ---------------------------------------------------------------------------
+document.addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+  if (modal.open) {
+    if (e.key === 'Escape') closeModal();
+    return;
+  }
+  if (e.key === 'a') openAddModal();
+  else if (e.key === 's') toggleSelectMode();
+  else if (e.key === 'l') laundryDoneAction();
+  else if (e.key === 'Escape' && selectMode) exitSelectMode();
+});
+
+// ---------------------------------------------------------------------------
+// Service worker
+// ---------------------------------------------------------------------------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.error('SW registration failed', err));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+initAuth();
+</script>
+</body>
+</html>
